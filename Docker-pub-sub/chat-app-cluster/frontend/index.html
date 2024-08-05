@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat</title>
+    <script>
+        let wsProducer0;
+        let wsConsumer0;
+        let wsProducer1;
+        let wsConsumer1;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            wsProducer0 = new WebSocket("ws://localhost:8080/chat/ws");
+            wsConsumer0 = new WebSocket("ws://localhost:8081/chat/ws");
+            wsProducer1 = new WebSocket("ws://localhost:8180/chat/ws");
+            wsConsumer1 = new WebSocket("ws://localhost:8181/chat/ws");
+
+            wsProducer0.onmessage = function(event) {
+                let chatbox = document.getElementById("chatboxproducer0");
+                chatbox.innerHTML += event.data + "<br/>";
+            };
+            wsProducer1.onmessage = function(event) {
+                let chatbox = document.getElementById("chatboxproducer1");
+                chatbox.innerHTML += event.data + "<br/>";
+            };
+
+            wsConsumer0.onmessage = function(event) {
+                let chatbox = document.getElementById("chatboxconsumer0");
+                chatbox.innerHTML += event.data + "<br/>";
+            };
+            wsConsumer1.onmessage = function(event) {
+                let chatbox = document.getElementById("chatboxconsumer1");
+                chatbox.innerHTML += event.data + "<br/>";
+            };
+        });
+
+        function sendMessage0() {
+            let message = document.getElementById("message0").value;
+            wsProducer0.send(message);
+        }
+        function sendMessage1() {
+            let message = document.getElementById("message1").value;
+            wsProducer1.send(message);
+        }
+    </script>
+</head>
+<body>
+    <h1>Chat 0</h1>
+    <div id="chatboxproducer0"></div>
+    <input type="text" id="message0" placeholder="Type a message..." value="Uma mensagem 0" />
+    <button onclick="sendMessage0()">Send</button>
+    <div id="chatboxconsumer0"></div>
+
+    <hr>
+
+    <h1>Chat 1</h1>
+    <div id="chatboxproducer1"></div>
+    <input type="text" id="message1" placeholder="Type a message..." value="Uma mensagem 1" />
+    <button onclick="sendMessage1()">Send</button>
+    <div id="chatboxconsumer1"></div>
+</body>
+</html>

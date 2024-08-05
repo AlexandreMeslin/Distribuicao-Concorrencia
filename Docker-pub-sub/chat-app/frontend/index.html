@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat</title>
+    <script>
+        let wsProducer;
+        let wsConsumer;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            wsProducer = new WebSocket("ws://localhost:8080/chat/ws");
+            wsConsumer = new WebSocket("ws://localhost:8081/chat/ws");
+
+            wsProducer.onmessage = function(event) {
+                let chatbox = document.getElementById("chatboxproducer");
+                chatbox.innerHTML += event.data + "<br/>";
+            };
+
+            wsConsumer.onmessage = function(event) {
+                let chatbox = document.getElementById("chatboxconsumer");
+                chatbox.innerHTML += event.data + "<br/>";
+            };
+        });
+
+        function sendMessage() {
+            let message = document.getElementById("message").value;
+            wsProducer.send(message);
+        }
+    </script>
+</head>
+<body>
+    <h1>Chat</h1>
+    <div id="chatboxproducer"></div>
+    <input type="text" id="message" placeholder="Type a message..."/>
+    <button onclick="sendMessage()">Send</button>
+    <div id="chatboxconsumer"></div>
+</body>
+</html>

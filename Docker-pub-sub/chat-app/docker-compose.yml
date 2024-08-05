@@ -1,0 +1,67 @@
+version: '3'
+services:
+  zookeeper:
+    image: zookeeper:3.6.3
+    ports:
+      - "2181:2181"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - my-network
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+    networks:
+      - my-network
+
+  producer-service:
+    build: ./producer-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - my-network
+
+  consumer-service:
+    build: ./consumer-service
+    ports:
+      - "8081:8080"
+    depends_on:
+      - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
