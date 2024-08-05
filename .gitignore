@@ -1,0 +1,79 @@
+# Diretórios compilados
+build/
+classes/
+*.class
+*.jar
+
+# Arquivos de configuração e temporários
+.idea/
+*.suo
+*.user
+*.tmp
+*.temp
+
+# Logs
+*.log
+
+# Arquivos de backup do editor
+*~
+*.bak
+*.swp
+
+# Arquivos do diretório de construção (build)
+build/
+target/
+
+# Arquivos de diretório de saída do Eclipse
+bin/
+gen/
+
+# Arquivos do IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Arquivos do Visual Studio Code
+.vscode/
+
+# Arquivos do macOS
+.DS_Store
+
+# Arquivos do Windows
+Thumbs.db
+desktop.ini
+
+# Arquivos de configuração do sistema
+.vscode/
+*.code-workspace
+
+# Arquivos de projeto do Maven
+.mvn/
+target/
+
+# Arquivos de projeto do Gradle
+.gradle/
+build/
+
+# Arquivos de Node.js
+node_modules/
+
+# Arquivos de Python
+__pycache__/
+*.py[cod]
+
+# Arquivos de Ruby
+*.gem
+*.rbc
+
+# Arquivos de LaTeX
+*.aux
+*.log
+*.out
+*.toc
+
+# Arquivos de log do Yarn
+.yarn/*
+!.yarn/cache
+!.yarn/unplugged
+!.yarn/versions
