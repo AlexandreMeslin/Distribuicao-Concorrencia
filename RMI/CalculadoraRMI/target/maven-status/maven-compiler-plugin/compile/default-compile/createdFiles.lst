@@ -1,0 +1,4 @@
+br/com/meslin/calculator/server/Server.class
+br/com/meslin/calculator/shared/Calculator.class
+br/com/meslin/calculator/client/Client.class
+br/com/meslin/calculator/server/CalculatorImpl.class
