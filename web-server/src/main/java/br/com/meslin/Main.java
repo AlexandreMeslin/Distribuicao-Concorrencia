@@ -8,7 +8,7 @@ public class Main {
     public static void main(String[] args) {
         int port = 8080; // Porta do servidor
         int threadNum = 0;
-        String path = args[1];
+        String path = args[0];
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Servidor iniciado na porta " + port);

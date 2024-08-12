@@ -1,11 +1,11 @@
 package br.com.meslin;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.Socket;
 
 public class HandleRequest implements Runnable {
@@ -22,9 +22,9 @@ public class HandleRequest implements Runnable {
 
     @Override
     public void run() {
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
              OutputStream out = clientSocket.getOutputStream();
-             PrintWriter writer = new PrintWriter(out, true)) {
 
             // Ler a primeira linha da requisição HTTP (a linha de solicitação)
             String requestLine = in.readLine();
@@ -52,15 +52,13 @@ public class HandleRequest implements Runnable {
                               "Content-Type: text/html\r\n" +
                               "Connection: close\r\n" +
                               "\r\n";
-            writer.print(response);
-            try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
-                while ((response = br.readLine()) != null) {
-                    writer.print(response);
-                }
-            } catch (IOException e) {
-                System.err.println("Erro ao ler o arquivo: " + e.getMessage());
+            out.write(response.getBytes());
+
+            FileInputStream fis = new FileInputStream(filename);
+            byte[] buffer = new byte[1024]; // Buffer de 1024 bytes
+            while (fis.read(buffer) != -1) {
+                out.write(buffer);
             }
-            writer.flush();
         } catch (IOException e) {
             System.err.println("Erro ao tratar a requisição: " + e.getMessage());
         } finally {
