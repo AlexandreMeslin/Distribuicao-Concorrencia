@@ -32,6 +32,8 @@ import sinalgo.runtime.Global;
 import sinalgo.tools.Tools;
 
 public class MyNode extends Node {
+	private char[] animacao = {'|', '/', '-', '\\'};
+	private int posAnimacao = 0;
 	/** this node previous neighbors */
 	private Set<Node> previousNeighbors;
 	/** all node data (this and other nodes) */
@@ -49,7 +51,8 @@ public class MyNode extends Node {
         collectionManager.add(collection);
 
 		RecordCreator recordCreatorTask = new RecordCreator();
-		Thread recordCreatorThread
+		Thread recordCreatorThread = new Thread(recordCreatorTask);
+		recordCreatorThread.start();
 	}
 
 	/* (non-Javadoc)
@@ -65,6 +68,7 @@ public class MyNode extends Node {
 	 */
 	@Override
 	public void neighborhoodChange() {
+		List<RecordCollectionManager> collectionManagerCloned;
 		Set<Node> currentNeighbors = new HashSet<>();
 
 		// Itera sobre as arestas de saída para encontrar os vizinhos atuais
@@ -75,10 +79,15 @@ public class MyNode extends Node {
 		// Detecta novos vizinhos
 		for (Node neighbor : currentNeighbors) {
 			if (!previousNeighbors.contains(neighbor)) {
-				System.out.println("Novo vizinho detectado: " + neighbor.ID);
 				// Envia mensagem se apresentado para o novo vizinho
-				IdMessage idMessage = new IdMessage(ID);
-				this.send(idMessage, neighbor);
+				synchronized(collectionManager) {
+					collectionManagerCloned = new ArrayList<>(collectionManager);
+				}
+				for(RecordCollectionManager collection : collectionManagerCloned) {
+					IdMessage idMessage = new IdMessage(collection.getNodeId());
+					this.send(idMessage, neighbor);
+				}
+				collectionManagerCloned = null;
 			}
 		}
 
@@ -101,8 +110,6 @@ public class MyNode extends Node {
 			Node sender = inbox.getSender();
 			MessageProcessor messageProcessor = new MessageProcessor();
 			messageProcessor.processMessage(sender, msg);
-
-			//CustomGlobal.consoleln(Global.currentTime + " nó " + this + " recebeu mensagem " + msg.getSequencial() + " " + msg.getClass().getSimpleName() + " de " + msg.getNoOrigem() + " dizendo: " + msg.toString());
 		}
 	}
 
@@ -128,13 +135,14 @@ public class MyNode extends Node {
 		int nodeSize = 10;
         // set the color of this node
 		if (highlight) {
-            graphics.setColor(Color.RED);
+            this.setColor(Color.RED);
         } else {
-            graphics.setColor(Color.BLUE);
+            this.setColor(Color.BLUE);
         }	
 
 		//this.setColor(new Color((float) 0.5, (float) 0.5, (float) 1.0));
-        String text = Integer.toString(this.ID);
+        String text = this.ID + Character.toString(this.animacao[this.posAnimacao]) + collectionManager.get(0).getLastSavedRecord();
+		this.posAnimacao = (this.posAnimacao+1) % this.animacao.length;
         // draw the node as a circle with the text inside
         super.drawNodeAsDiskWithText(graphics, pt, highlight, text, 3, Color.YELLOW);
 	}
@@ -194,7 +202,8 @@ public class MyNode extends Node {
 				synchronized(recordEntries) {
 					recordEntries.removeIf(entry -> entry.getRecordNumber() <= msg.getLastSavedRecordNumber());
 				}
-				collectionManager.setLastSavedRecord(lastSavedRecord);
+				if(lastSavedRecord > collectionManager.getLastSavedRecord()) collectionManager.setLastSavedRecord(lastSavedRecord);
+				//CustomGlobal.consoleln("Nó " + MyNode.this.ID + " atualizando last saved record de " + msg.getNodeId() + " com " + lastSavedRecord);
 			}
 		}
 
@@ -205,7 +214,7 @@ public class MyNode extends Node {
 		private void handleNextRecordNumberMessage(Node sender, NextRecordNumberMessage msg) {
 			int nodeId = msg.getNodeId();
 			int nextMessage = msg.getNextRecordNumber();
-			RecordCollectionManager manager =null;
+			RecordCollectionManager manager =null; 
 			List<RecordEntry> outgoingRecords = new ArrayList<>();
 
 			synchronized(MyNode.this.collectionManager) {
@@ -268,10 +277,8 @@ public class MyNode extends Node {
 					}
 				}
 			}
-			if(found) {
-				LastSavedRecordMessage message = new LastSavedRecordMessage(nodeId, lastSavedRecord);
-				MyNode.this.send(message, sender);
-			}
+			LastSavedRecordMessage message = new LastSavedRecordMessage(nodeId, lastSavedRecord);
+			MyNode.this.send(message, sender);
 		}
 
 		protected void sendNextRecordNumber(Node sender, int nodeId) {
@@ -287,10 +294,8 @@ public class MyNode extends Node {
 					}
 				}
 			}
-			if(found) {
-				NextRecordNumberMessage message = new NextRecordNumberMessage(nodeId, nextRecordNumber);
-				MyNode.this.send(message, sender);
-			}
+			NextRecordNumberMessage message = new NextRecordNumberMessage(nodeId, nextRecordNumber);
+			MyNode.this.send(message, sender);
 		}
 
 		/**
@@ -314,10 +319,12 @@ public class MyNode extends Node {
 		public void run() {
 			try {
 				while(true) {
-					RecordEntry record = new RecordEntry(this.counter, "Data: " + this.counter);
+					RecordEntry record = new RecordEntry(this.counter, "Data: " + this.counter++);
+					collectionManager.get(0).setNextRecord(this.counter);
 					synchronized(collectionManager.get(0)) {
 						collectionManager.get(0).getRecordList().add(record);
 					}
+					Thread.sleep(10*1000 + (int)(Math.random()*10*1000));
 				}
 			} catch (Exception e) {
 				CustomGlobal.consoleln("***** ERROR ***** " + e.getStackTrace());

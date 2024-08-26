@@ -36,8 +36,10 @@ public class MyStationaryNode extends Node {
     @Override
     public void handleMessages(Inbox inbox) {
         while(inbox.hasNext()) {
-            Message msg = inbox.next();
+            Message msg = inbox.next();		// precisa obter a próxima mensagem antes de tudo
             Node sender = inbox.getSender();
+			MessageProcessor messageProcessor = new MessageProcessor();
+			messageProcessor.processMessage(sender, msg);
         }        
     }
 
@@ -121,10 +123,16 @@ public class MyStationaryNode extends Node {
             // will not receive
 		}
 
+		/**
+		 * Receive a message record list 
+		 * @param sender who sent the message
+		 * @param msg the message
+		 */
 		private void handleRecordListMessage(Node sender, RecordListMessage msg) {
 			boolean found = false;
 			RecordCollectionManager collectionManager = null;
 
+			// search the message collection list for a previous message from the same producer (not the same sender)
 			for(RecordCollectionManager manager : MyStationaryNode.this.collectionManager) {
 				if(manager.getNodeId() == msg.getNodeId()) {
 					found = true;
@@ -132,13 +140,19 @@ public class MyStationaryNode extends Node {
 					break;
 				}
 			}
+
+			// if this is the very first message, create a new entry in the record collection for this producer
 			if(!found) {
 				collectionManager = new RecordCollectionManager(msg.getNodeId());
 				MyStationaryNode.this.collectionManager.add(collectionManager);
 			}
+
+			// check for a non-empty received message list 
 			if(msg.getRecordList().size() > 0) {
                 // not save the record list, just the last record number
 				collectionManager.setNextRecord(msg.getRecordList().get(msg.getRecordList().size()-1).getRecordNumber());
+				// also update last saved record
+				collectionManager.setLastSavedRecord(msg.getRecordList().get(msg.getRecordList().size()-1).getRecordNumber());
 			}
 	    }
 
@@ -155,10 +169,8 @@ public class MyStationaryNode extends Node {
 					}
 				}
 			}
-			if(found) {
-				LastSavedRecordMessage message = new LastSavedRecordMessage(nodeId, lastSavedRecord);
-				MyStationaryNode.this.send(message, sender);
-			}
+			LastSavedRecordMessage message = new LastSavedRecordMessage(nodeId, lastSavedRecord);
+			MyStationaryNode.this.send(message, sender);
 		}
 
 		protected void sendNextRecordNumber(Node sender, int nodeId) {
@@ -174,10 +186,8 @@ public class MyStationaryNode extends Node {
 					}
 				}
 			}
-			if(found) {
-				NextRecordNumberMessage message = new NextRecordNumberMessage(nodeId, nextRecordNumber);
-				MyStationaryNode.this.send(message, sender);
-			}
+			NextRecordNumberMessage message = new NextRecordNumberMessage(nodeId, nextRecordNumber);
+			MyStationaryNode.this.send(message, sender);
 		}
 
 		/**

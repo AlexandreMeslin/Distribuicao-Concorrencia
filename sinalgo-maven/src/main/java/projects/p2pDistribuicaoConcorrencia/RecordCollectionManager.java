@@ -3,7 +3,7 @@ package projects.p2pDistribuicaoConcorrencia;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RecordCollectionManager {
+public class RecordCollectionManager implements Cloneable {
     private final int nodeId;
     private int nextRecord;
     private int lastSavedRecord;
@@ -46,5 +46,10 @@ public class RecordCollectionManager {
 
     public void setLastSavedRecord(int lastSavedRecord) {
         this.lastSavedRecord = lastSavedRecord;
+    }
+
+    @Override
+    protected RecordCollectionManager clone() throws CloneNotSupportedException {
+        return (RecordCollectionManager)super.clone();
     }
 }
